@@ -1,0 +1,1785 @@
+# Internal Events Platform - GitHub Copilot Setup Guide
+
+## Project Overview
+
+**Goal:** Build an AI-powered internal events management platform with geo-based data separation, Teams bot integration, and a web-based content management interface.
+
+### Key Features
+
+- Multi-geo event management (separate data stores per geography)
+- Web UI: Landing page → Geo selection → Geo-specific event management
+- Teams chatbot for natural language event queries
+- Vector search for semantic event discovery
+- Historical event analysis and budget planning tools
+
+---
+
+## Tech Stack
+
+### Backend
+
+- **Runtime:** Node.js 20+ with TypeScript
+- **Framework:** Express.js
+- **Bot Framework:** Bot Framework SDK v4
+- **Database:** Azure Cosmos DB (separate containers per geo)
+- **Vector Search:** Azure AI Search
+- **AI/LLM:** Azure OpenAI Service
+- **Authentication:** Azure AD (MSAL)
+- **API:** Microsoft Graph API
+
+### Frontend
+
+- **Framework:** React 18 with TypeScript
+- **Styling:** Tailwind CSS
+- **State Management:** Zustand
+- **Forms:** React Hook Form + Zod validation
+- **Date handling:** date-fns
+- **Rich text:** TipTap or Draft.js
+
+### DevOps
+
+- **Hosting:** Azure App Service (web) + Azure Bot Service (bot)
+- **CI/CD:** GitHub Actions
+- **Monitoring:** Application Insights
+- **Secrets:** Azure Key Vault
+
+---
+
+## Folder Structure
+company-events-platform/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── deploy.yml
+├── backend/
+│   ├── src/
+│   │   ├── bot/
+│   │   │   ├── index.ts                    # Bot entry point
+│   │   │   ├── dialogs/
+│   │   │   │   ├── mainDialog.ts           # Root dialog
+│   │   │   │   ├── upcomingEventsDialog.ts
+│   │   │   │   └── budgetPlanningDialog.ts
+│   │   │   ├── cards/
+│   │   │   │   ├── eventCard.ts            # Adaptive card templates
+│   │   │   │   └── eventListCard.ts
+│   │   │   └── middleware/
+│   │   │       └── authMiddleware.ts       # Teams SSO
+│   │   ├── api/
+│   │   │   ├── routes/
+│   │   │   │   ├── events.ts               # CRUD endpoints
+│   │   │   │   ├── geos.ts                 # Geo management
+│   │   │   │   ├── search.ts               # Search endpoints
+│   │   │   │   └── analytics.ts            # Budget/attendance analytics
+│   │   │   └── middleware/
+│   │   │       ├── auth.ts                 # Azure AD validation
+│   │   │       └── geoContext.ts           # Geo isolation enforcement
+│   │   ├── services/
+│   │   │   ├── cosmosService.ts            # Cosmos DB operations
+│   │   │   ├── searchService.ts            # Azure AI Search
+│   │   │   ├── openaiService.ts            # LLM + embeddings
+│   │   │   ├── graphService.ts             # Teams/M365 data ingestion
+│   │   │   └── geoService.ts               # Geo-specific logic
+│   │   ├── models/
+│   │   │   ├── event.ts                    # Event schema/types
+│   │   │   ├── geo.ts                      # Geo configuration
+│   │   │   └── user.ts                     # User context
+│   │   ├── jobs/
+│   │   │   ├── ingestTeamsEvents.ts        # Scheduled ingestion
+│   │   │   └── syncCalendars.ts            # M365 calendar sync
+│   │   ├── config/
+│   │   │   ├── database.ts
+│   │   │   ├── azure.ts
+│   │   │   └── geos.ts                     # Geo definitions
+│   │   ├── utils/
+│   │   │   ├── dateParser.ts
+│   │   │   ├── budgetAnalyzer.ts
+│   │   │   └── logger.ts
+│   │   └── index.ts                        # Express app entry
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── LandingPage.tsx             # Geo selector
+│   │   │   ├── GeoDashboard.tsx            # Geo-specific home
+│   │   │   ├── EventsList.tsx              # Browse events
+│   │   │   ├── EventDetail.tsx             # Single event view
+│   │   │   ├── CreateEvent.tsx             # Event creation form
+│   │   │   ├── EditEvent.tsx               # Event editor
+│   │   │   └── Analytics.tsx               # Budget/attendance dashboards
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── Header.tsx
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   └── GeoSwitcher.tsx         # Switch between geos
+│   │   │   ├── events/
+│   │   │   │   ├── EventCard.tsx
+│   │   │   │   ├── EventForm.tsx
+│   │   │   │   ├── BudgetBreakdown.tsx
+│   │   │   │   └── AttendeeList.tsx
+│   │   │   ├── geos/
+│   │   │   │   ├── GeoCard.tsx             # Landing page cards
+│   │   │   │   └── GeoStats.tsx            # Quick stats per geo
+│   │   │   └── common/
+│   │   │       ├── Button.tsx
+│   │   │       ├── Modal.tsx
+│   │   │       └── LoadingSpinner.tsx
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts                  # Azure AD auth
+│   │   │   ├── useEvents.ts                # Event CRUD operations
+│   │   │   ├── useGeoContext.ts            # Current geo state
+│   │   │   └── useSearch.ts                # Search functionality
+│   │   ├── services/
+│   │   │   ├── api.ts                      # Axios instance
+│   │   │   └── auth.ts                     # MSAL configuration
+│   │   ├── store/
+│   │   │   ├── authStore.ts                # User state
+│   │   │   ├── geoStore.ts                 # Selected geo
+│   │   │   └── eventsStore.ts              # Events cache
+│   │   ├── types/
+│   │   │   ├── event.ts
+│   │   │   ├── geo.ts
+│   │   │   └── user.ts
+│   │   ├── utils/
+│   │   │   ├── formatters.ts
+│   │   │   └── validators.ts
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── index.css
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
+├── shared/
+│   ├── types/
+│   │   ├── event.ts                        # Shared type definitions
+│   │   ├── geo.ts
+│   │   └── api.ts
+│   └── constants/
+│       └── geos.ts                         # Geo configurations
+├── infrastructure/
+│   ├── bicep/
+│   │   ├── main.bicep                      # Main Azure resources
+│   │   ├── cosmos.bicep                    # Cosmos DB setup
+│   │   ├── aisearch.bicep                  # AI Search setup
+│   │   ├── bot.bicep                       # Bot Service
+│   │   └── appservice.bicep                # Web app hosting
+│   └── scripts/
+│       ├── setup-azure.sh
+│       └── seed-geos.ts                    # Initial geo setup
+├── docs/
+│   ├── SETUP.md
+│   ├── GEO_MANAGEMENT.md
+│   ├── API.md
+│   └── DEPLOYMENT.md
+├── .gitignore
+├── .env.example
+├── package.json                            # Root package.json for workspace
+├── README.md
+└── COPILOT_GUIDE.md                        # This file
+
+---
+
+## Step-by-Step Setup Instructions
+
+### 1. Initialize Repository
+
+**Copilot Prompt:** *"Set up a monorepo with TypeScript, Node.js backend, React frontend, and shared types folder. Use npm workspaces."*
+
+```bash
+# Run these commands first
+npm init -y
+```
+
+#### Create root `package.json`:
+
+{
+  "name": "company-events-platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+  }
+}
+```
+
+#### Create `.gitignore`:
+
+```gitignore "engines": {
+    "node": ">=20.0.0"
+  }
+}
+Create
+.gitignore
+:
+
+node_modules/
+dist/
+build/
+.azure/
+```
+
+---
+
+### 2. Backend Setup
+
+**Copilot Prompt:** *"Initialize a TypeScript Express backend in the backend folder with Bot Framework SDK v4, Azure SDKs for Cosmos DB, AI Search, and OpenAI."*
+
+#### Navigate to backend:
+
+```bash
+mkdir -p backend/src
+cd backend
+```
+
+#### Create `backend/package.json`:
+
+```json. Backend Setup
+Copilot Prompt: "Initialize a TypeScript Express backend in the backend folder with Bot Framework SDK v4, Azure SDKs for Cosmos DB, AI Search, and OpenAI."
+
+Navigate to backend:
+
+mkdir -p backend/src
+cd backend
+Create
+backend/package.json
+:
+
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "botbuilder": "^4.20.0",
+    "@azure/cosmos": "^4.0.0",
+    "@azure/search-documents": "^12.0.0",
+    "@azure/openai": "^1.0.0-beta.8",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@azure/identity": "^4.0.0",
+    "@azure/msal-node": "^2.6.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "zod": "^3.22.4",
+    "date-fns": "^3.0.0",
+  }
+}
+```
+
+#### Create `backend/tsconfig.json`:
+
+```json   "@types/cors": "^2.8.17",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "eslint": "^8.55.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@typescript-eslint/eslint-plugin": "^6.14.0"
+  }
+}
+Create
+backend/tsconfig.json
+:
+
+{
+  "compilerOptions": {
+    "target": "ES2022",
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+#### Create `backend/.env.example`:
+
+```env   "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+Create
+backend/.env.example
+:
+
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Azure Cosmos DB
+COSMOS_ENDPOINT=https://your-account.documents.azure.com:443/
+COSMOS_KEY=your-key
+COSMOS_DATABASE_NAME=events-platform
+
+# Azure AI Search
+SEARCH_ENDPOINT=https://your-search.search.windows.net
+SEARCH_KEY=your-key
+SEARCH_INDEX_NAME=events-index
+
+# Azure OpenAI
+OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
+# Azure AD (for web auth)
+AZURE_AD_CLIENT_ID=your-client-id
+AZURE_AD_TENANT_ID=your-tenant-id
+```
+
+---
+
+#### Backend File: `backend/src/index.ts`
+
+**Copilot Prompt:** *"Create an Express server that hosts both the REST API on /api routes and the Bot Framework adapter on /api/messages. Include CORS, helmet, error handling, and health check endpoint."*
+
+```typescript
+GRAPH_CLIENT_SECRET=your-client-secret
+GRAPH_TENANT_ID=your-tenant-id
+
+# Bot Framework
+BOT_ID=your-bot-id
+BOT_PASSWORD=your-bot-password
+
+# Azure AD (for web auth)
+AZURE_AD_CLIENT_ID=your-client-id
+AZURE_AD_TENANT_ID=your-tenant-id
+Backend File:
+backend/src/index.ts
+Copilot Prompt: "Create an Express server that hosts both the REST API on /api routes and the Bot Framework adapter on /api/messages. Include CORS, helmet, error handling, and health check endpoint."
+
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import dotenv from 'dotenv';
+import { BotFrameworkAdapter } from 'botbuilder';
+import eventsRouter from './api/routes/events';
+import geosRouter from './api/routes/geos';
+import searchRouter from './api/routes/search';
+import analyticsRouter from './api/routes/analytics';
+import { bot } from './bot';
+import { logger } from './utils/logger';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+// Bot Framework adapter
+const adapter = new BotFrameworkAdapter({
+  appId: process.env.BOT_ID,
+  appPassword: process.env.BOT_PASSWORD,
+});
+
+// Error handler for bot
+adapter.onTurnError = async (context, error) => {
+  logger.error('Bot error:', error);
+  await context.sendActivity('Sorry, something went wrong!');
+app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+});
+```
+
+---
+
+#### Backend File: `backend/src/config/geos.ts`
+
+**Copilot Prompt:** *"Create a geo configuration file that defines all supported geographies with metadata like timezone, currency, and allowed user domains. Each geo should have a unique ID and container name for Cosmos DB isolation."*
+
+```typescript
+
+app.use('/api/events', eventsRouter);
+app.use('/api/geos', geosRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/analytics', analyticsRouter);
+
+// Bot endpoint
+app.post('/api/messages', (req, res) => {
+  adapter.processActivity(req, res, async (context) => {
+    await bot.run(context);
+  });
+});
+
+app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+});
+Backend File:
+backend/src/config/geos.ts
+Copilot Prompt: "Create a geo configuration file that defines all supported geographies with metadata like timezone, currency, and allowed user domains. Each geo should have a unique ID and container name for Cosmos DB isolation."
+
+export interface GeoConfig {
+  id: string;
+  name: string;
+  displayName: string;
+  region: string; // e.g., "North America", "EMEA", "APAC"
+  timezone: string; // IANA timezone
+  currency: string;
+  containerName: string; // Cosmos DB container
+  allowedDomains?: string[]; // Email domains for auto-assignment
+  isActive: boolean;
+}
+
+export const GEOS: GeoConfig[] = [
+  {
+    id: 'us-new-york',
+    name: 'New York',
+    displayName: 'New York, USA',
+    region: 'North America',
+    timezone: 'America/New_York',
+    currency: 'USD',
+    containerName: 'events-us-new-york',
+    allowedDomains: ['ny.company.com'],
+    isActive: true,
+  },
+  {
+    id: 'us-san-francisco',
+    name: 'San Francisco',
+    displayName: 'San Francisco, USA',
+    region: 'North America',
+    timezone: 'America/Los_Angeles',
+    currency: 'USD',
+    containerName: 'events-us-san-francisco',
+    allowedDomains: ['sf.company.com'],
+    isActive: true,
+  },
+  {
+    id: 'uk-london',
+    name: 'London',
+    displayName: 'London, UK',
+    region: 'EMEA',
+    timezone: 'Europe/London',
+    currency: 'GBP',
+    containerName: 'events-uk-london',
+    allowedDomains: ['london.company.com'],
+    isActive: true,
+  const domain = email.split('@')[1];
+  return GEOS.find((geo) => geo.allowedDomains?.includes(domain));
+};
+```
+
+---
+
+#### Backend File: `backend/src/models/event.ts`
+
+**Copilot Prompt:** *"Create a Zod schema and TypeScript type for an Event that includes title, description, dates, location, budget breakdown, organizer info, tags, and geo association. Add validation rules."*
+
+```typescript
+    timezone: 'UTC',
+    currency: 'USD',
+    containerName: 'events-global',
+    isActive: true,
+  },
+];
+
+export const getGeoById = (geoId: string): GeoConfig | undefined => {
+  return GEOS.find((geo) => geo.id === geoId);
+};
+
+export const getGeoByDomain = (email: string): GeoConfig | undefined => {
+  const domain = email.split('@')[1];
+  return GEOS.find((geo) => geo.allowedDomains?.includes(domain));
+};
+Backend File:
+backend/src/models/event.ts
+Copilot Prompt: "Create a Zod schema and TypeScript type for an Event that includes title, description, dates, location, budget breakdown, organizer info, tags, and geo association. Add validation rules."
+
+import { z } from 'zod';
+
+export const EventSchema = z.object({
+  id: z.string().uuid().optional(), // Generated on creation
+  geoId: z.string(), // Which geo this event belongs to
+  title: z.string().min(3).max(200),
+  description: z.string().max(5000),
+  
+  // Dates
+  startDateTime: z.string().datetime(), // ISO 8601
+  endDateTime: z.string().datetime(),
+  timezone: z.string(),
+  
+  // Location
+  location: z.object({
+    type: z.enum(['in-person', 'virtual', 'hybrid']),
+    venue: z.string().optional(),
+    address: z.string().optional(),
+    city: z.string(),
+    country: z.string(),
+    meetingLink: z.string().url().optional(),
+  }),
+  
+  // Event details
+  eventType: z.enum([
+    'conference',
+    'workshop',
+    'team-building',
+    'happy-hour',
+    'lunch-and-learn',
+    'hackathon',
+    'town-hall',
+    'training',
+    'other'
+  ]),
+  department: z.string(),
+  targetAudience: z.array(z.string()), // Departments or "All"
+  
+  // Budget
+  budget: z.object({
+    total: z.number().min(0),
+    currency: z.string(),
+    breakdown: z.array(z.object({
+      category: z.string(), // "Catering", "Venue", "Swag", etc.
+      amount: z.number().min(0),
+    })).optional(),
+    actualCost: z.number().min(0).optional(), // Post-event
+  }),
+  
+  // People
+  organizer: z.object({
+    email: z.string().email(),
+    name: z.string(),
+  }),
+  expectedAttendees: z.number().min(0).optional(),
+  actualAttendees: z.number().min(0).optional(),
+  
+  // Registration
+  registrationRequired: z.boolean().default(false),
+  registrationLink: z.string().url().optional(),
+  maxCapacity: z.number().min(0).optional(),
+  
+  // Metadata
+  tags: z.array(z.string()),
+  attachments: z.array(z.object({
+    name: z.string(),
+    url: z.string().url(),
+});
+
+export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+```
+
+---
+
+#### Backend File: `backend/src/services/cosmosService.ts`
+
+**Copilot Prompt:** *"Create a Cosmos DB service that handles CRUD operations for events with geo-based container isolation. Each geo should have its own container. Include methods for create, read, update, delete, and query with filters."*
+
+```typescript
+  
+  // Status
+  status: z.enum(['draft', 'published', 'completed', 'cancelled']),
+  
+  // Timestamps
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  createdBy: z.string().email(),
+  updatedBy: z.string().email(),
+});
+
+export type Event = z.infer<typeof EventSchema>;
+
+// For creating new events (omit auto-generated fields)
+export const CreateEventSchema = EventSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateEventInput = z.infer<typeof CreateEventSchema>;
+Backend File:
+backend/src/services/cosmosService.ts
+Copilot Prompt: "Create a Cosmos DB service that handles CRUD operations for events with geo-based container isolation. Each geo should have its own container. Include methods for create, read, update, delete, and query with filters."
+
+import { CosmosClient, Container, SqlQuerySpec } from '@azure/cosmos';
+import { Event } from '../models/event';
+import { getGeoById } from '../config/geos';
+import { logger } from '../utils/logger';
+
+class CosmosService {
+  private client: CosmosClient;
+  private databaseId: string;
+  private containers: Map<string, Container> = new Map();
+
+  constructor() {
+    this.client = new CosmosClient({
+      endpoint: process.env.COSMOS_ENDPOINT!,
+      key: process.env.COSMOS_KEY!,
+    });
+    this.databaseId = process.env.COSMOS_DATABASE_NAME || 'events-platform';
+  }
+
+  private async getContainer(geoId: string): Promise<Container> {
+    // Cache containers
+    if (this.containers.has(geoId)) {
+      return this.containers.get(geoId)!;
+    }
+
+    const geo = getGeoById(geoId);
+    if (!geo) {
+      throw new Error(`Invalid geo ID: ${geoId}`);
+    }
+
+    const database = this.client.database(this.databaseId);
+    const container = database.container(geo.containerName);
+    
+    this.containers.set(geoId, container);
+    return container;
+  }
+
+  async createEvent(event: Event): Promise<Event> {
+    const container = await this.getContainer(event.geoId);
+    const { resource } = await container.items.create(event);
+    logger.info(`Created event ${resource.id} in geo ${event.geoId}`);
+    return resource;
+  }
+
+  async getEvent(geoId: string, eventId: string): Promise<Event | null> {
+    try {
+      const container = await this.getContainer(geoId);
+      const { resource } = await container.item(eventId, eventId).read();
+      return resource;
+    } catch (error: any) {
+      if (error.code === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async updateEvent(geoId: string, eventId: string, updates: Partial<Event>): Promise<Event> {
+    const container = await this.getContainer(geoId);
+    const existing = await this.getEvent(geoId, eventId);
+    
+    if (!existing) {
+      throw new Error(`Event ${eventId} not found in geo ${geoId}`);
+    }
+
+    const updated = {
+      ...existing,
+      ...updates,
+      id: eventId, // Prevent ID change
+      geoId, // Prevent geo change
+      updatedAt: new Date().toISOString(),
+    };
+
+    const { resource } = await container.item(eventId, eventId).replace(updated);
+    logger.info(`Updated event ${eventId} in geo ${geoId}`);
+    return resource;
+  }
+
+  async deleteEvent(geoId: string, eventId: string): Promise<void> {
+    const container = await this.getContainer(geoId);
+    await container.item(eventId, eventId).delete();
+    logger.info(`Deleted event ${eventId} from geo ${geoId}`);
+  }
+
+  async queryEvents(geoId: string, filters: {
+    status?: string;
+    eventType?: string;
+    startDateFrom?: string;
+    startDateTo?: string;
+    department?: string;
+    searchText?: string;
+  }): Promise<Event[]> {
+    const container = await this.getContainer(geoId);
+    
+    let querySpec: SqlQuerySpec = {
+      query: 'SELECT * FROM c WHERE 1=1',
+      parameters: [],
+    };
+
+    let paramIndex = 0;
+    
+    if (filters.status) {
+      querySpec.query += ` AND c.status = @status${paramIndex}`;
+      querySpec.parameters!.push({ name: `@status${paramIndex}`, value: filters.status });
+      paramIndex++;
+    }
+
+    if (filters.eventType) {
+      querySpec.query += ` AND c.eventType = @eventType${paramIndex}`;
+      querySpec.parameters!.push({ name: `@eventType${paramIndex}`, value: filters.eventType });
+      paramIndex++;
+    }
+
+    if (filters.startDateFrom) {
+}
+
+export const cosmosService = new CosmosService();
+```
+
+---
+
+#### Backend File: `backend/src/api/routes/events.ts`
+
+**Copilot Prompt:** *"Create Express routes for event CRUD operations with geo-based access control. Include GET /events (list), GET /events/:id, POST /events, PUT /events/:id, DELETE /events/:id. Validate geo access via middleware."*
+
+```typescript
+      querySpec.query += ` AND c.startDateTime <= @startTo${paramIndex}`;
+      querySpec.parameters!.push({ name: `@startTo${paramIndex}`, value: filters.startDateTo });
+      paramIndex++;
+    }
+
+    if (filters.department) {
+      querySpec.query += ` AND c.department = @dept${paramIndex}`;
+      querySpec.parameters!.push({ name: `@dept${paramIndex}`, value: filters.department });
+      paramIndex++;
+    }
+
+    querySpec.query += ' ORDER BY c.startDateTime ASC';
+
+    const { resources } = await container.items.query(querySpec).fetchAll();
+    return resources;
+  }
+
+  async getUpcomingEvents(geoId: string, limit: number = 10): Promise<Event[]> {
+    const now = new Date().toISOString();
+    return this.queryEvents(geoId, {
+      status: 'published',
+      startDateFrom: now,
+    });
+  }
+}
+
+export const cosmosService = new CosmosService();
+Backend File:
+backend/src/api/routes/events.ts
+Copilot Prompt: "Create Express routes for event CRUD operations with geo-based access control. Include GET /events (list), GET /events/:id, POST /events, PUT /events/:id, DELETE /events/:id. Validate geo access via middleware."
+
+import { Router } from 'express';
+import { cosmosService } from '../../services/cosmosService';
+import { CreateEventSchema, Event } from '../../models/event';
+import { geoContextMiddleware } from '../middleware/geoContext';
+import { authMiddleware } from '../middleware/auth';
+import { v4 as uuidv4 } from 'uuid';
+
+const router = Router();
+
+// Apply auth middleware to all routes
+router.use(authMiddleware);
+
+// Get events for a specific geo
+router.get('/', geoContextMiddleware, async (req, res) => {
+  try {
+    const geoId = req.geoId!; // Set by middleware
+    const filters = {
+      status: req.query.status as string,
+      eventType: req.query.eventType as string,
+      startDateFrom: req.query.startDateFrom as string,
+      startDateTo: req.query.startDateTo as string,
+      department: req.query.department as string,
+    };
+
+    const events = await cosmosService.queryEvents(geoId, filters);
+    res.json({ geoId, events, count: events.length });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get single event
+router.get('/:id', geoContextMiddleware, async (req, res) => {
+  try {
+    const geoId = req.geoId!;
+    const event = await cosmosService.getEvent(geoId, req.params.id);
+    
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    res.json(event);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create event
+router.post('/', geoContextMiddleware, async (req, res) => {
+  try {
+    const geoId = req.geoId!;
+    const validatedData = CreateEventSchema.parse(req.body);
+    
+    const event: Event = {
+      ...validatedData,
+      id: uuidv4(),
+      geoId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: req.userEmail!, // Set by auth middleware
+      updatedBy: req.userEmail!,
+    };
+});
+
+export default router;
+```
+
+---
+
+#### Backend File: `backend/src/api/middleware/geoContext.ts`
+
+**Copilot Prompt:** *"Create middleware that extracts and validates the geo context from request headers or query params. The geoId should be required for all geo-specific operations. Attach it to req.geoId for use in route handlers."*
+
+```typescript
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update event
+router.put('/:id', geoContextMiddleware, async (req, res) => {
+  try {
+    const geoId = req.geoId!;
+    const updates = {
+      ...req.body,
+      updatedBy: req.userEmail!,
+    };
+
+    const updated = await cosmosService.updateEvent(geoId, req.params.id, updates);
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete event
+router.delete('/:id', geoContextMiddleware, async (req, res) => {
+  try {
+    const geoId = req.geoId!;
+    await cosmosService.deleteEvent(geoId, req.params.id);
+    res.status(204).send();
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+  req.geoId = geoId;
+  next();
+};
+```
+
+---
+
+### 3. Frontend Setup
+
+**Copilot Prompt:** *"Initialize a React + TypeScript + Vite frontend with Tailwind CSS, React Router for navigation, Zustand for state, and MSAL for Azure AD authentication."*
+
+```bash
+cd ../
+mkdir frontend
+cd frontend
+```
+
+#### Create `frontend/package.json`:
+
+```json namespace Express {
+    interface Request {
+      geoId?: string;
+      userEmail?: string;
+    }
+  }
+}
+
+export const geoContextMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // Extract geo from header or query param
+  const geoId = req.headers['x-geo-id'] as string || req.query.geoId as string;
+
+  if (!geoId) {
+    return res.status(400).json({
+      error: 'Geo context required',
+      message: 'Please provide geoId in x-geo-id header or geoId query parameter',
+    });
+  }
+
+  const geo = getGeoById(geoId);
+  if (!geo || !geo.isActive) {
+    return res.status(400).json({
+      error: 'Invalid geo',
+      message: `Geo '${geoId}' is not valid or inactive`,
+    });
+  }
+
+  req.geoId = geoId;
+  }
+}
+```
+
+#### Create `frontend/vite.config.ts`:
+
+```typescript
+cd ../
+mkdir frontend
+cd frontend
+Create
+frontend/package.json
+:
+
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+  },
+});
+```
+
+#### Create `frontend/tailwind.config.js`:
+
+```javascript   "@azure/msal-react": "^2.0.9",
+    "axios": "^1.6.2",
+    "react-hook-form": "^7.49.2",
+    "zod": "^3.22.4",
+    "@hookform/resolvers": "^3.3.3",
+    "date-fns": "^3.0.0",
+    "lucide-react": "^0.294.0",
+    "clsx": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7",
+    "tailwindcss": "^3.3.6",
+    "autoprefixer": "^10.4.16",
+  },
+  plugins: [],
+}
+```
+
+---
+
+#### Frontend File: `frontend/src/pages/LandingPage.tsx`
+
+**Copilot Prompt:** *"Create a landing page component that displays all available geos as cards in a grid. Each card should show the geo name, region, a count of upcoming events, and a 'View Events' button that navigates to that geo's dashboard. Use Tailwind for styling."*
+
+```typescript
+frontend/vite.config.ts
+:
+
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@shared': path.resolve(__dirname, '../shared'),
+    },
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
+Create
+frontend/tailwind.config.js
+:
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+        },
+      },
+    },
+  },
+  plugins: [],
+}
+Frontend File:
+frontend/src/pages/LandingPage.tsx
+Copilot Prompt: "Create a landing page component that displays all available geos as cards in a grid. Each card should show the geo name, region, a count of upcoming events, and a 'View Events' button that navigates to that geo's dashboard. Use Tailwind for styling."
+
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Globe, Calendar, MapPin } from 'lucide-react';
+import { api } from '../services/api';
+
+interface GeoSummary {
+  id: string;
+  name: string;
+  displayName: string;
+  region: string;
+  upcomingEventsCount: number;
+  isActive: boolean;
+}
+
+export const LandingPage: React.FC = () => {
+  const [geos, setGeos] = useState<GeoSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchGeos = async () => {
+      try {
+        const response = await api.get('/api/geos');
+        setGeos(response.data);
+      } catch (error) {
+        console.error('Failed to fetch geos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGeos();
+  }, []);
+
+  const handleGeoSelect = (geoId: string) => {
+    navigate(`/geo/${geoId}`);
+  };
+    </div>
+  );
+};
+```
+
+---
+
+#### Frontend File: `frontend/src/pages/GeoDashboard.tsx`
+
+**Copilot Prompt:** *"Create a geo-specific dashboard that displays upcoming events, quick stats (total events, total budget spent), and a search/filter sidebar. Include a header with the geo name and a 'Create Event' button. Use the geoId from URL params."*
+
+```typescript
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-16">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <Globe className="mx-auto h-16 w-16 text-primary-600 mb-4" />
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Company Events Platform
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover, plan, and manage events across all our global locations
+          </p>
+        </div>
+
+        {/* Geo Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {geos.map((geo) => (
+            <div
+              key={geo.id}
+              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden cursor-pointer transform hover:scale-105 transition-transform"
+              onClick={() => handleGeoSelect(geo.id)}
+            >
+              <div className="bg-gradient-to-r from-primary-500 to-primary-700 h-32 flex items-center justify-center">
+                <MapPin className="h-16 w-16 text-white" />
+              </div>
+              
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {geo.name}
+                </h2>
+                <p className="text-gray-600 mb-4">{geo.region}</p>
+                
+                <div className="flex items-center text-primary-600 mb-6">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  <span className="font-semibold">
+                    {geo.upcomingEventsCount} upcoming events
+                  </span>
+                </div>
+
+                <button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                  View Events
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+Frontend File:
+frontend/src/pages/GeoDashboard.tsx
+Copilot Prompt: "Create a geo-specific dashboard that displays upcoming events, quick stats (total events, total budget spent), and a search/filter sidebar. Include a header with the geo name and a 'Create Event' button. Use the geoId from URL params."
+
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Plus, Search, Calendar, DollarSign, Users } from 'lucide-react';
+import { api } from '../services/api';
+import { useGeoStore } from '../store/geoStore';
+import { Event } from '@shared/types/event';
+
+export const GeoDashboard: React.FC = () => {
+  const { geoId } = useParams<{ geoId: string }>();
+  const navigate = useNavigate();
+  const { currentGeo, setCurrentGeo } = useGeoStore();
+  
+  const [events, setEvents] = useState<Event[]>([]);
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    upcomingEvents: 0,
+    totalBudget: 0,
+    totalAttendees: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (geoId) {
+      setCurrentGeo(geoId);
+      fetchDashboardData();
+    }
+  }, [geoId]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch events
+      const eventsResponse = await api.get(`/api/events`, {
+        headers: { 'x-geo-id': geoId },
+        params: { status: 'published' },
+      });
+      setEvents(eventsResponse.data.events);
+
+      // Fetch stats
+      const statsResponse = await api.get(`/api/analytics/stats`, {
+        headers: { 'x-geo-id': geoId },
+      });
+      setStats(statsResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateEvent = () => {
+    navigate(`/geo/${geoId}/events/create`);
+  };
+
+  const handleEventClick = (eventId: string) => {
+    navigate(`/geo/${geoId}/events/${eventId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {currentGeo?.displayName || 'Events Dashboard'}
+              </h1>
+              <p className="text-gray-600 mt-1">{currentGeo?.region}</p>
+            </div>
+            <button
+              onClick={handleCreateEvent}
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              Create Event
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Events</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalEvents}</p>
+              </div>
+              <Calendar className="h-12 w-12 text-primary-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Upcoming</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.upcomingEvents}</p>
+              </div>
+              <Calendar className="h-12 w-12 text-green-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Budget</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  ${stats.totalBudget.toLocaleString()}
+                </p>
+              </div>
+              <DollarSign className="h-12 w-12 text-yellow-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Attendees</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalAttendees}</p>
+              </div>
+              <Users className="h-12 w-12 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+    </div>
+  );
+};
+```
+
+---
+
+#### Frontend File: `frontend/src/store/geoStore.ts`
+
+**Copilot Prompt:** *"Create a Zustand store for managing geo context. Store the current geoId, geo config object, and provide methods to set/switch geos. Persist selection to localStorage."*
+
+```typescript
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* Events List */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Upcoming Events</h2>
+          </div>
+          
+          <div className="divide-y divide-gray-200">
+            {events.length === 0 ? (
+              <div className="p-12 text-center text-gray-500">
+                <Calendar className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                <p className="text-lg">No events found</p>
+                <button
+                  onClick={handleCreateEvent}
+                  className="mt-4 text-primary-600 hover:text-primary-700 font-semibold"
+                >
+                  Create your first event
+                </button>
+              </div>
+            ) : (
+              events.map((event) => (
+                <div
+                  key={event.id}
+                  onClick={() => handleEventClick(event.id)}
+                  className="p-6 hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {event.title}
+                      </h3>
+                      <p className="text-gray-600 mb-2">{event.description}</p>
+                      <div className="flex gap-4 text-sm text-gray-500">
+                        <span>📅 {new Date(event.startDateTime).toLocaleDateString()}</span>
+                        <span>📍 {event.location.city}</span>
+                        <span>💰 ${event.budget.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      event.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {event.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+    }
+  )
+);
+```
+
+---
+
+### 4. Shared Types
+
+**Copilot Prompt:** *"Create shared TypeScript types in the /shared folder that both backend and frontend can import. Include Event, Geo, User, and API response types."*
+
+```bash
+cd ../
+mkdir -p shared/types
+```
+
+#### Create `shared/types/event.ts`:
+
+```typescriptmport { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { GeoConfig } from '@shared/types/geo';
+import { api } from '../services/api';
+
+interface GeoStore {
+  currentGeoId: string | null;
+  currentGeo: GeoConfig | null;
+  availableGeos: GeoConfig[];
+  
+  setCurrentGeo: (geoId: string) => Promise<void>;
+  loadGeos: () => Promise<void>;
+  switchGeo: (geoId: string) => void;
+}
+
+export const useGeoStore = create<GeoStore>()(
+  persist(
+    (set, get) => ({
+      currentGeoId: null,
+      currentGeo: null,
+      availableGeos: [],
+
+      setCurrentGeo: async (geoId: string) => {
+        try {
+          const response = await api.get(`/api/geos/${geoId}`);
+          set({
+            currentGeoId: geoId,
+            currentGeo: response.data,
+          });
+        } catch (error) {
+          console.error('Failed to set geo:', error);
+        }
+      },
+
+      loadGeos: async () => {
+        try {
+          const response = await api.get('/api/geos');
+          set({ availableGeos: response.data });
+        } catch (error) {
+          console.error('Failed to load geos:', error);
+        }
+      },
+
+  createdBy: string;
+  updatedBy: string;
+}
+```
+
+#### Create `shared/types/geo.ts`:
+
+```typescript           currentGeo: geo,
+          });
+        }
+      },
+    }),
+    {
+      name: 'geo-storage',
+      partialize: (state) => ({
+        currentGeoId: state.currentGeoId,
+      }),
+  allowedDomains?: string[];
+  isActive: boolean;
+}
+```
+
+---
+
+### 5. Bot Implementation (Basic)
+
+**Copilot Prompt:** *"Create a basic Teams bot that can handle user queries about upcoming events. Use Bot Framework SDK with dialogs for conversation flow. Include an Adaptive Card template for displaying events."*
+
+#### Create `backend/src/bot/index.ts`:
+
+```typescriptreate
+shared/types/event.ts
+:
+
+export interface Event {
+  id: string;
+  geoId: string;
+  title: string;
+  description: string;
+  startDateTime: string;
+  endDateTime: string;
+  timezone: string;
+  location: {
+    type: 'in-person' | 'virtual' | 'hybrid';
+    venue?: string;
+    address?: string;
+    city: string;
+    country: string;
+    meetingLink?: string;
+  };
+  eventType: 'conference' | 'workshop' | 'team-building' | 'happy-hour' | 
+              'lunch-and-learn' | 'hackathon' | 'town-hall' | 'training' | 'other';
+  department: string;
+  targetAudience: string[];
+  budget: {
+    total: number;
+    currency: string;
+    breakdown?: Array<{
+      category: string;
+      amount: number;
+    }>;
+    actualCost?: number;
+  };
+  organizer: {
+    email: string;
+    name: string;
+  };
+  expectedAttendees?: number;
+  actualAttendees?: number;
+  registrationRequired: boolean;
+  registrationLink?: string;
+  maxCapacity?: number;
+  tags: string[];
+  attachments?: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
+  source: string;
+  sourceMessageUrl?: string;
+  status: 'draft' | 'published' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
+Create
+shared/types/geo.ts
+:
+
+export interface GeoConfig {
+  id: string;
+  name: string;
+  displayName: string;
+  region: string;
+  timezone: string;
+  currency: string;
+  containerName: string;
+  allowedDomains?: string[];
+  isActive: boolean;
+}
+5. Bot Implementation (Basic)
+Copilot Prompt: "Create a basic Teams bot that can handle user queries about upcoming events. Use Bot Framework SDK with dialogs for conversation flow. Include an Adaptive Card template for displaying events."
+
+Create
+backend/src/bot/index.ts
+:
+
+import { ActivityHandler, TurnContext, CardFactory } from 'botbuilder';
+import { cosmosService } from '../services/cosmosService';
+import { getGeoByDomain } from '../config/geos';
+import { createEventCard } from './cards/eventCard';
+
+export class EventsBot extends ActivityHandler {
+  constructor() {
+}
+
+export const bot = new EventsBot();
+```
+
+---
+
+### 6. Azure Infrastructure (Bicep)
+
+**Copilot Prompt:** *"Create Bicep templates to provision Azure resources: Cosmos DB with multiple containers (one per geo), Azure AI Search, Azure OpenAI, App Service, and Bot Service."*
+
+#### Create `infrastructure/bicep/main.bicep`:
+
+```bicep
+      if (userMessage.includes('upcoming') || userMessage.includes('what events')) {
+        await this.handleUpcomingEvents(context, userGeo.id);
+      } else if (userMessage.includes('budget')) {
+        await this.handleBudgetQuery(context, userMessage, userGeo.id);
+      } else {
+        await context.sendActivity('Hi! Ask me about upcoming events or budget planning.');
+      }
+
+      await next();
+    });
+
+    this.onMembersAdded(async (context, next) => {
+      for (const member of context.activity.membersAdded || []) {
+        if (member.id !== context.activity.recipient.id) {
+          await context.sendActivity('Welcome! I can help you discover events. Try asking "What events are coming up?"');
+        }
+      }
+      await next();
+    });
+  }
+
+  private async handleUpcomingEvents(context: TurnContext, geoId: string) {
+    try {
+      const events = await cosmosService.getUpcomingEvents(geoId, 5);
+      
+      if (events.length === 0) {
+        await context.sendActivity('No upcoming events found for your location.');
+        return;
+      }
+
+      const cards = events.map(event => createEventCard(event));
+      await context.sendActivity({
+        attachments: cards,
+        attachmentLayout: 'carousel',
+      });
+    } catch (error) {
+      await context.sendActivity('Sorry, I encountered an error fetching events.');
+    }
+  }
+
+  private async handleBudgetQuery(context: TurnContext, query: string, geoId: string) {
+    // Extract budget from query using regex
+output cosmosEndpoint string = cosmos.outputs.endpoint
+output searchEndpoint string = aiSearch.outputs.endpoint
+output botId string = bot.outputs.botId
+```
+
+---
+
+### 7. Documentation
+
+#### Create `docs/SETUP.md`:
+
+```markdown   }
+
+    // Query similar events (±20% budget range)
+    const events = await cosmosService.queryEvents(geoId, {
+      status: 'completed',
+    });
+
+    const similarEvents = events.filter(event => {
+      const budgetDiff = Math.abs(event.budget.total - targetBudget);
+      return budgetDiff <= targetBudget * 0.2;
+    });
+
+    if (similarEvents.length === 0) {
+      await context.sendActivity(`No past events found with budgets near $${targetBudget}`);
+      return;
+    }
+
+    const message = `Found ${similarEvents.length} past events with similar budgets:\n\n` +
+      similarEvents.slice(0, 5).map(e => 
+        `• ${e.title} ($${e.budget.total}, ${e.actualAttendees || 0} attendees)`
+      ).join('\n');
+
+    await context.sendActivity(message);
+  }
+}
+# Terminal 2 - Frontend
+npm run frontend
+```
+
+### Azure Deployment
+
+#### 1. Provision Infrastructure
+  --resource-group company-events-rg \
+  --template-file bicep/main.bicep \
+  --parameters projectName=company-events environment=prod
+```
+# Will be automated via GitHub Actions
+```
+
+### Adding a New Geo
+
+1. Edit `shared/constants/geos.ts`
+2. Add new geo configuration
+3. Run `npm run seed-geos` to create Cosmos container
+4. Update AI Search index
+```
+
+---
+
+## Final Checklist for Copilot
+
+Use these prompts sequentially in your IDE with GitHub Copilot:
+
+### Phase 1: Project Scaffold
+
+- [ ] "Initialize monorepo with npm workspaces for backend, frontend, and shared"
+- [ ] "Create backend package.json with Express, Bot Framework, and Azure SDKs"
+- [ ] "Create frontend package.json with React, Vite, Tailwind, and MSAL"
+- [ ] "Set up TypeScript configs for all workspaces"
+
+### Phase 2: Backend Core
+
+- [ ] "Create Express server with bot endpoint and API routes"
+- [ ] "Implement Cosmos DB service with geo-based container isolation"
+- [ ] "Create event CRUD API routes with geo context middleware"
+- [ ] "Build Azure AI Search service for semantic event search"
+- [ ] "Implement OpenAI service for embeddings and chat completions"
+
+### Phase 3: Frontend Core
+
+- [ ] "Create React app with router setup (/, /geo/:geoId, /geo/:geoId/events/:eventId)"
+- [ ] "Build landing page with geo selection cards"
+- [ ] "Build geo dashboard with stats and events list"
+- [ ] "Create event detail page with full information"
+- [ ] "Build event creation/edit form with validation"
+
+### Phase 4: Bot Implementation
+
+- [ ] "Create Teams bot with message handler and dialogs"
+- [ ] "Implement upcoming events query handler"
+- [ ] "Implement budget planning query handler"
+- [ ] "Create Adaptive Card templates for event display"
+
+### Phase 5: Infrastructure
+
+- [ ] "Create Bicep templates for all Azure resources"
+- [ ] "Set up GitHub Actions for CI/CD"
+- [ ] "Create database seed scripts for initial geo setup"
+module appService 'appservice.bicep' = {
+  name: 'appServiceDeployment'
+  params: {
+    appName: '${resourceNamePrefix}-api'
+    location: location
+  }
+}
+
+output cosmosEndpoint string = cosmos.outputs.endpoint
+output searchEndpoint string = aiSearch.outputs.endpoint
+output botId string = bot.outputs.botId
+7. Documentation
+Create
+docs/SETUP.md
+:
+
+# Setup Guide
+
+## Prerequisites
+- Node.js 20+
+- Azure subscription
+- Azure CLI installed
+- Teams admin access
+
+## Local Development
+
+### 1. Clone and Install
+```bash
+git clone <repo-url>
+cd company-events-platform
+npm install
+2. Configure Environment
+cp backend/.env.example backend/.env
+# Fill in Azure credentials
+3. Start Services
+# Terminal 1 - Backend
+npm run backend
+
+# Terminal 2 - Frontend
+npm run frontend
+Azure Deployment
+1. Provision Infrastructure
+cd infrastructure
+az login
+az deployment group create \
+  --resource-group company-events-rg \
+  --template-file bicep/main.bicep \
+  --parameters projectName=company-events environment=prod
+2. Deploy Application
+# Will be automated via GitHub Actions
+Adding a New Geo
+Edit
+shared/constants/geos.ts
+Add new geo configuration
+Run
+npm run seed-geos
+to create Cosmos container
+Update AI Search index
+---
+
+## Final Checklist for Copilot
+
+Use these prompts sequentially in your IDE with GitHub Copilot:
+
+### Phase 1: Project Scaffold
+- [ ] "Initialize monorepo with npm workspaces for backend, frontend, and shared"
+- [ ] "Create backend package.json with Express, Bot Framework, and Azure SDKs"
+- [ ] "Create frontend package.json with React, Vite, Tailwind, and MSAL"
+- [ ] "Set up TypeScript configs for all workspaces"
+
+### Phase 2: Backend Core
+- [ ] "Create Express server with bot endpoint and API routes"
+- [ ] "Implement Cosmos DB service with geo-based container isolation"
+- [ ] "Create event CRUD API routes with geo context middleware"
+- [ ] "Build Azure AI Search service for semantic event search"
+- [ ] "Implement OpenAI service for embeddings and chat completions"
+
+### Phase 3: Frontend Core
+- [ ] "Create React app with router setup (/, /geo/:geoId, /geo/:geoId/events/:eventId)"
+- [ ] "Build landing page with geo selection cards"
+- [ ] "Build geo dashboard with stats and events list"
+- [ ] "Create event detail page with full information"
+- [ ] "Build event creation/edit form with validation"
+
+### Phase 4: Bot Implementation
+- [ ] "Create Teams bot with message handler and dialogs"
+- [ ] "Implement upcoming events query handler"
+- [ ] "Implement budget planning query handler"
+- [ ] "Create Adaptive Card templates for event display"
+
+### Phase 5: Infrastructure
+- [ ] "Create Bicep templates for all Azure resources"
+- [ ] "Set up GitHub Actions for CI/CD"
+- [ ] "Create database seed scripts for initial geo setup"
+
+---
+
+## Quick Start Commands
+
+Once repository is set up:
+
+```bash
+# Install all dependencies
+npm install
+
+# Start development
+npm run dev
+
+# Build for production
+npm run build
+
+# Deploy to Azure
+npm run deploy
