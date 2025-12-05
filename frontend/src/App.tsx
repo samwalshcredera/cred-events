@@ -1,8 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
-import GeoDashboard from './pages/GeoDashboard';
-import EventDetail from './pages/EventDetail';
-import CreateEvent from './pages/CreateEvent';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import GeoDashboard from "./pages/GeoDashboard";
+import EventDetail from "./pages/EventDetail";
+import CreateEvent from "./pages/CreateEvent";
 
 function App() {
   return (

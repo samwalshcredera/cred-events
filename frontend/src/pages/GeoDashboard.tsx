@@ -1,5 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Search, Calendar, DollarSign, Users, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Plus,
+  Search,
+  Calendar,
+  DollarSign,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
 
 interface Event {
   id: string;
@@ -18,31 +25,32 @@ interface Event {
 // Mock data
 const mockEvents: Event[] = [
   {
-    id: '1',
-    title: 'Q4 Town Hall',
-    description: 'Company-wide quarterly update and Q&A session',
-    startDateTime: '2025-12-15T14:00:00Z',
-    location: { city: 'New York' },
+    id: "1",
+    title: "Q4 Town Hall",
+    description: "Company-wide quarterly update and Q&A session",
+    startDateTime: "2025-12-15T14:00:00Z",
+    location: { city: "New York" },
     budget: { total: 5000 },
-    status: 'published',
+    status: "published",
   },
   {
-    id: '2',
-    title: 'Holiday Party',
-    description: 'Annual holiday celebration with dinner and entertainment',
-    startDateTime: '2025-12-20T18:00:00Z',
-    location: { city: 'New York' },
+    id: "2",
+    title: "Holiday Party",
+    description: "Annual holiday celebration with dinner and entertainment",
+    startDateTime: "2025-12-20T18:00:00Z",
+    location: { city: "New York" },
     budget: { total: 15000 },
-    status: 'published',
+    status: "published",
   },
   {
-    id: '3',
-    title: 'Tech Workshop: AI & ML',
-    description: 'Hands-on workshop exploring AI and machine learning applications',
-    startDateTime: '2026-01-10T10:00:00Z',
-    location: { city: 'New York' },
+    id: "3",
+    title: "Tech Workshop: AI & ML",
+    description:
+      "Hands-on workshop exploring AI and machine learning applications",
+    startDateTime: "2026-01-10T10:00:00Z",
+    location: { city: "New York" },
     budget: { total: 3000 },
-    status: 'published',
+    status: "published",
   },
 ];
 
@@ -57,9 +65,10 @@ export default function GeoDashboard() {
   const { geoId } = useParams<{ geoId: string }>();
   const navigate = useNavigate();
 
-  const geoName = geoId?.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  const geoName = geoId
+    ?.split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   const handleCreateEvent = () => {
     navigate(`/geo/${geoId}/events/create`);
@@ -77,7 +86,7 @@ export default function GeoDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="h-6 w-6" />
@@ -107,7 +116,9 @@ export default function GeoDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Events</p>
-                <p className="text-3xl font-bold text-gray-900">{mockStats.totalEvents}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {mockStats.totalEvents}
+                </p>
               </div>
               <Calendar className="h-12 w-12 text-primary-600" />
             </div>
@@ -117,7 +128,9 @@ export default function GeoDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Upcoming</p>
-                <p className="text-3xl font-bold text-gray-900">{mockStats.upcomingEvents}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {mockStats.upcomingEvents}
+                </p>
               </div>
               <Calendar className="h-12 w-12 text-green-600" />
             </div>
@@ -139,7 +152,9 @@ export default function GeoDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Attendees</p>
-                <p className="text-3xl font-bold text-gray-900">{mockStats.totalAttendees}</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {mockStats.totalAttendees}
+                </p>
               </div>
               <Users className="h-12 w-12 text-purple-600" />
             </div>
@@ -163,7 +178,7 @@ export default function GeoDashboard() {
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">Upcoming Events</h2>
           </div>
-          
+
           <div className="divide-y divide-gray-200">
             {mockEvents.map((event) => (
               <div
@@ -178,7 +193,9 @@ export default function GeoDashboard() {
                     </h3>
                     <p className="text-gray-600 mb-2">{event.description}</p>
                     <div className="flex gap-4 text-sm text-gray-500">
-                      <span>📅 {new Date(event.startDateTime).toLocaleDateString()}</span>
+                      <span>
+                        📅 {new Date(event.startDateTime).toLocaleDateString()}
+                      </span>
                       <span>📍 {event.location.city}</span>
                       <span>💰 ${event.budget.total.toLocaleString()}</span>
                     </div>

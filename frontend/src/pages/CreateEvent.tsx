@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function CreateEvent() {
   const { geoId } = useParams();
@@ -24,7 +24,9 @@ export default function CreateEvent() {
               <ArrowLeft className="h-6 w-6" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create New Event</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Create New Event
+              </h1>
               <p className="text-gray-600 mt-1">Fill in the details below</p>
             </div>
           </div>
@@ -33,11 +35,16 @@ export default function CreateEvent() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-lg shadow-lg p-8 space-y-6"
+          >
             {/* Basic Information */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Basic Information
+              </h2>
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -102,8 +109,10 @@ export default function CreateEvent() {
 
             {/* Date & Time */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Date & Time</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Date & Time
+              </h2>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -131,8 +140,10 @@ export default function CreateEvent() {
 
             {/* Location */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Location</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Location
+              </h2>
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -177,8 +188,10 @@ export default function CreateEvent() {
 
             {/* Budget */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Budget</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Budget
+              </h2>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,8 +223,10 @@ export default function CreateEvent() {
 
             {/* Organizer */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Organizer Information</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Organizer Information
+              </h2>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
