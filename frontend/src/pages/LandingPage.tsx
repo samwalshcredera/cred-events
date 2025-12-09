@@ -63,33 +63,29 @@ export default function LandingPage() {
         </div>
 
         {/* Geo Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {mockGeos.map((geo) => (
             <div
               key={geo.id}
-              className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden cursor-pointer transform hover:scale-105 transition-transform"
+              className="bg-white rounded-lg shadow hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer transform hover:scale-105 transition-transform"
               onClick={() => handleGeoSelect(geo.id)}
             >
-              <div className="bg-gradient-to-r from-primary-500 to-primary-700 h-32 flex items-center justify-center">
-                <MapPin className="h-16 w-16 text-white" />
+              <div className="bg-gradient-to-r from-primary-500 to-primary-700 h-24 flex items-center justify-center">
+                <MapPin className="h-10 w-10 text-white" />
               </div>
 
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <div className="p-4">
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
                   {geo.name}
                 </h2>
-                <p className="text-gray-600 mb-4">{geo.region}</p>
+                <p className="text-sm text-gray-600 mb-3">{geo.region}</p>
 
-                <div className="flex items-center text-primary-600 mb-6">
-                  <Calendar className="h-5 w-5 mr-2" />
+                <div className="flex items-center text-primary-600 text-sm">
+                  <Calendar className="h-4 w-4 mr-1.5" />
                   <span className="font-semibold">
-                    {geo.upcomingEventsCount} upcoming events
+                    {geo.upcomingEventsCount} events
                   </span>
                 </div>
-
-                <button className="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                  View Events
-                </button>
               </div>
             </div>
           ))}
