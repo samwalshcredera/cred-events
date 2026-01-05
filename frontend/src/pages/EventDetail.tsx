@@ -6,6 +6,7 @@ import {
   DollarSign,
   Users,
   Clock,
+  Edit,
 } from "lucide-react";
 
 export default function EventDetail() {
@@ -52,18 +53,27 @@ export default function EventDetail() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(`/geo/${geoId}`)}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Event Details
-              </h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate(`/geo/${geoId}`)}
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Event Details
+                </h1>
+              </div>
             </div>
+            <button
+              onClick={() => navigate(`/geo/${geoId}/events/${eventId}/edit`)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <Edit className="h-5 w-5" />
+              <span>Edit Event</span>
+            </button>
           </div>
         </div>
       </header>
