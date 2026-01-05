@@ -27,7 +27,7 @@ export default function GeoDashboard() {
   const navigate = useNavigate();
   const getEventsByGeo = useEventsStore((state) => state.getEventsByGeo);
   const events = geoId ? getEventsByGeo(geoId) : [];
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -543,38 +543,41 @@ export default function GeoDashboard() {
                               ${event.budget.total.toLocaleString()} budget
                             </span>
                           </div>
-                          {isPastEvent ? (
-                            event.actualAttendees !== undefined && (
-                              <div
-                                className={`flex items-center text-sm ${
-                                  isPastEvent ? "text-gray-500" : "text-gray-700"
-                                }`}
-                              >
-                                <Users className="mr-2 h-4 w-4" />
-                                <span>
-                                  {event.actualAttendees} attended
-                                  {event.expectedAttendees && (
-                                    <span className="text-xs ml-1">
-                                      (expected {event.expectedAttendees})
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                            )
-                          ) : (
-                            event.expectedAttendees !== undefined && (
-                              <div
-                                className={`flex items-center text-sm ${
-                                  isPastEvent ? "text-gray-500" : "text-gray-700"
-                                }`}
-                              >
-                                <Users className="mr-2 h-4 w-4" />
-                                <span>
-                                  ~{event.expectedAttendees} expected attendees
-                                </span>
-                              </div>
-                            )
-                          )}
+                          {isPastEvent
+                            ? event.actualAttendees !== undefined && (
+                                <div
+                                  className={`flex items-center text-sm ${
+                                    isPastEvent
+                                      ? "text-gray-500"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  <Users className="mr-2 h-4 w-4" />
+                                  <span>
+                                    {event.actualAttendees} attended
+                                    {event.expectedAttendees && (
+                                      <span className="text-xs ml-1">
+                                        (expected {event.expectedAttendees})
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              )
+                            : event.expectedAttendees !== undefined && (
+                                <div
+                                  className={`flex items-center text-sm ${
+                                    isPastEvent
+                                      ? "text-gray-500"
+                                      : "text-gray-700"
+                                  }`}
+                                >
+                                  <Users className="mr-2 h-4 w-4" />
+                                  <span>
+                                    ~{event.expectedAttendees} expected
+                                    attendees
+                                  </span>
+                                </div>
+                              )}
                         </div>
 
                         {/* Tags */}

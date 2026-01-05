@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface Event {
   id: string;
@@ -29,7 +29,11 @@ interface EventsStore {
   getEventsByGeo: (geoId: string) => Event[];
   getEventById: (geoId: string, eventId: string) => Event | undefined;
   addEvent: (geoId: string, event: Event) => void;
-  updateEvent: (geoId: string, eventId: string, updates: Partial<Event>) => void;
+  updateEvent: (
+    geoId: string,
+    eventId: string,
+    updates: Partial<Event>
+  ) => void;
   deleteEvent: (geoId: string, eventId: string) => void;
 }
 
@@ -43,7 +47,8 @@ const initialGeos: GeoData[] = [
       {
         id: "1",
         title: "Q4 Town Hall",
-        description: "Company-wide quarterly update and Q&A session with Roy about how to go A to A",
+        description:
+          "Company-wide quarterly update and Q&A session with Roy about how to go A to A",
         startDateTime: "2025-12-15T14:00:00Z",
         budget: { total: 5000 },
         status: "published",
@@ -53,7 +58,8 @@ const initialGeos: GeoData[] = [
       {
         id: "2",
         title: "Holiday Party",
-        description: "Annual holiday celebration with dinner and entertainment hosted by Rohan",
+        description:
+          "Annual holiday celebration with dinner and entertainment hosted by Rohan",
         startDateTime: "2025-12-20T18:00:00Z",
         budget: { total: 15000 },
         status: "published",
@@ -63,7 +69,8 @@ const initialGeos: GeoData[] = [
       {
         id: "3",
         title: "Tech Workshop: AI & ML",
-        description: "Hands-on workshop exploring AI and machine learning applications presented by Tim Corp",
+        description:
+          "Hands-on workshop exploring AI and machine learning applications presented by Tim Corp",
         startDateTime: "2026-01-10T10:00:00Z",
         budget: { total: 3000 },
         status: "published",
@@ -93,7 +100,8 @@ const initialGeos: GeoData[] = [
       {
         id: "11",
         title: "Diversity & Inclusion Workshop",
-        description: "Interactive workshop focused on building an inclusive workplace culture",
+        description:
+          "Interactive workshop focused on building an inclusive workplace culture",
         startDateTime: "2026-01-22T10:00:00Z",
         budget: { total: 4500 },
         status: "published",
@@ -124,7 +132,8 @@ const initialGeos: GeoData[] = [
       {
         id: "19",
         title: "Annual Company Picnic",
-        description: "Family-friendly outdoor event with games, food, and entertainment",
+        description:
+          "Family-friendly outdoor event with games, food, and entertainment",
         startDateTime: "2025-08-10T11:00:00Z",
         budget: { total: 22000 },
         status: "completed",
@@ -145,7 +154,8 @@ const initialGeos: GeoData[] = [
       {
         id: "23",
         title: "Thanksgiving Potluck",
-        description: "Company potluck celebration with traditional Thanksgiving dishes",
+        description:
+          "Company potluck celebration with traditional Thanksgiving dishes",
         startDateTime: "2025-11-26T12:00:00Z",
         budget: { total: 2500 },
         status: "completed",
@@ -156,7 +166,8 @@ const initialGeos: GeoData[] = [
       {
         id: "24",
         title: "Product Design Sprint",
-        description: "Week-long intensive design thinking workshop for product team",
+        description:
+          "Week-long intensive design thinking workshop for product team",
         startDateTime: "2026-01-20T09:00:00Z",
         budget: { total: 8500 },
         status: "published",
@@ -246,7 +257,8 @@ const initialGeos: GeoData[] = [
       {
         id: "33",
         title: "Mental Health Awareness Workshop",
-        description: "Session on workplace mental health and wellness resources",
+        description:
+          "Session on workplace mental health and wellness resources",
         startDateTime: "2026-01-29T15:00:00Z",
         budget: { total: 3500 },
         status: "published",
@@ -284,7 +296,8 @@ const initialGeos: GeoData[] = [
       {
         id: "6",
         title: "Product Launch Gala",
-        description: "Grand celebration for our new product line with media coverage and VIP guests",
+        description:
+          "Grand celebration for our new product line with media coverage and VIP guests",
         startDateTime: "2025-12-18T19:00:00Z",
         budget: { total: 45000 },
         status: "published",
@@ -315,7 +328,8 @@ const initialGeos: GeoData[] = [
       {
         id: "15",
         title: "Data Science Conference",
-        description: "Multi-day conference featuring industry leaders in data science and analytics",
+        description:
+          "Multi-day conference featuring industry leaders in data science and analytics",
         startDateTime: "2026-02-10T08:00:00Z",
         budget: { total: 55000 },
         status: "published",
@@ -325,7 +339,8 @@ const initialGeos: GeoData[] = [
       {
         id: "18",
         title: "Lunch & Learn: Cybersecurity",
-        description: "Educational session on cybersecurity best practices with lunch provided",
+        description:
+          "Educational session on cybersecurity best practices with lunch provided",
         startDateTime: "2025-12-17T12:00:00Z",
         budget: { total: 800 },
         status: "published",
@@ -353,7 +368,8 @@ const initialGeos: GeoData[] = [
       {
         id: "8",
         title: "Sales Kickoff 2026",
-        description: "Annual sales team kickoff with training, team building, and goal setting",
+        description:
+          "Annual sales team kickoff with training, team building, and goal setting",
         startDateTime: "2026-01-15T09:00:00Z",
         budget: { total: 35000 },
         status: "published",
@@ -383,7 +399,8 @@ const initialGeos: GeoData[] = [
       {
         id: "22",
         title: "Career Development Fair",
-        description: "Internal career fair with workshops on professional development",
+        description:
+          "Internal career fair with workshops on professional development",
         startDateTime: "2026-02-05T10:00:00Z",
         budget: { total: 9500 },
         status: "published",
@@ -428,30 +445,28 @@ export const useEventsStore = create<EventsStore>()(
   persist(
     (set, get) => ({
       geos: initialGeos,
-      
+
       getGeoById: (geoId: string) => {
         return get().geos.find((g) => g.id === geoId);
       },
-      
+
       getEventsByGeo: (geoId: string) => {
         const geo = get().geos.find((g) => g.id === geoId);
         return geo?.events || [];
       },
-      
+
       getEventById: (geoId: string, eventId: string) => {
         const geo = get().geos.find((g) => g.id === geoId);
         return geo?.events.find((event) => event.id === eventId);
       },
-      
+
       addEvent: (geoId: string, event: Event) =>
         set((state) => ({
           geos: state.geos.map((geo) =>
-            geo.id === geoId
-              ? { ...geo, events: [...geo.events, event] }
-              : geo
+            geo.id === geoId ? { ...geo, events: [...geo.events, event] } : geo
           ),
         })),
-      
+
       updateEvent: (geoId: string, eventId: string, updates: Partial<Event>) =>
         set((state) => ({
           geos: state.geos.map((geo) =>
@@ -465,7 +480,7 @@ export const useEventsStore = create<EventsStore>()(
               : geo
           ),
         })),
-      
+
       deleteEvent: (geoId: string, eventId: string) =>
         set((state) => ({
           geos: state.geos.map((geo) =>
@@ -479,7 +494,7 @@ export const useEventsStore = create<EventsStore>()(
         })),
     }),
     {
-      name: 'events-storage',
+      name: "events-storage",
     }
   )
 );

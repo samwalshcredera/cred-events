@@ -13,7 +13,10 @@ function App() {
         <Route path="/geo/:geoId" element={<GeoDashboard />} />
         <Route path="/geo/:geoId/events/:eventId" element={<EventDetail />} />
         <Route path="/geo/:geoId/events/create" element={<CreateEvent />} />
-        <Route path="/geo/:geoId/events/:eventId/edit" element={<EditEvent />} />
+        <Route
+          path="/geo/:geoId/events/:eventId/edit"
+          element={<EditEvent />}
+        />
       </Routes>
     </Router>
   );

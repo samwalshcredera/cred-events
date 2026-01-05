@@ -31,15 +31,15 @@ export default function EditEvent() {
       if (event) {
         const startDate = new Date(event.startDateTime);
         const endDate = new Date(event.startDateTime); // Assuming same day for now
-        
+
         setFormData({
           title: event.title,
           description: event.description,
           eventType: "", // We don't have this in the Event interface yet
           department: "", // We don't have this in the Event interface yet
-          startDate: startDate.toISOString().split('T')[0],
+          startDate: startDate.toISOString().split("T")[0],
           startTime: startDate.toTimeString().slice(0, 5),
-          endDate: endDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split("T")[0],
           endTime: endDate.toTimeString().slice(0, 5),
           city: geoId,
           budget: event.budget.total.toString(),
@@ -51,20 +51,24 @@ export default function EditEvent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Update event in store
     if (eventId && geoId) {
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`).toISOString();
-      
+      const startDateTime = new Date(
+        `${formData.startDate}T${formData.startTime}`
+      ).toISOString();
+
       updateEvent(geoId, eventId, {
         title: formData.title,
         description: formData.description,
         startDateTime: startDateTime,
         budget: { total: parseFloat(formData.budget) },
-        expectedAttendees: formData.expectedAttendees ? parseInt(formData.expectedAttendees) : undefined,
+        expectedAttendees: formData.expectedAttendees
+          ? parseInt(formData.expectedAttendees)
+          : undefined,
       });
     }
-    
+
     // Navigate back
     navigate(`/geo/${geoId}`);
   };
